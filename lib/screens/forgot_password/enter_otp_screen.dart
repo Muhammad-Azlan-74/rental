@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../constants/colors.dart';
 import '../../widgets/custom_button.dart';
+import '../../services/auth_service.dart';
 import 'reset_password_screen.dart';
 
 class EnterOtpScreen extends StatefulWidget {
@@ -33,13 +34,16 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     super.dispose();
   }
 
-  void _handleVerify() {
-    String otp = _otpControllers.map((c) => c.text).join();
+  Future<void> _handleVerify() async {
+    final otp = _otpControllers.map((c) => c.text).join();
     if (otp.length != 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter the complete OTP'),
+        SnackBar(
+          content: const Text('Please enter the complete 6-digit OTP'),
           backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
       );
       return;
@@ -47,25 +51,50 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate OTP verification
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ResetPasswordScreen(),
+    final result = await AuthService.verifyOtp(widget.email, otp);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result['success'] == true) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResetPasswordScreen(
+            email: widget.email,
+            otpCode: otp,
           ),
-        );
-      }
-    });
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] as String),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
   }
 
-  void _handleResendOtp() {
+  Future<void> _handleResendOtp() async {
+    final result = await AuthService.forgotPassword(widget.email);
+
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('OTP sent to ${widget.email}'),
-        backgroundColor: AppColors.success,
+        content: Text(
+          result['success'] == true
+              ? 'OTP resent to ${widget.email}'
+              : (result['message'] as String),
+        ),
+        backgroundColor:
+            result['success'] == true ? AppColors.success : AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -78,7 +107,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -197,7 +226,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
                     child: const Text(
                       'Didn\'t receive the code? Resend',
                       style: TextStyle(
-                        color: AppColors.primaryLight,
+                        color: AppColors.primaryDark,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),

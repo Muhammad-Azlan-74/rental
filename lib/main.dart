@@ -22,7 +22,7 @@ class RentalPropertyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Rental Property',
+      title: 'Legacy NWI',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

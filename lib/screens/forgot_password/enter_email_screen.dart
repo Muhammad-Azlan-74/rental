@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/colors.dart';
 import '../../widgets/custom_textfield.dart';
 import '../../widgets/custom_button.dart';
+import '../../services/auth_service.dart';
 import 'enter_otp_screen.dart';
 
 class EnterEmailScreen extends StatefulWidget {
@@ -22,24 +23,37 @@ class _EnterEmailScreenState extends State<EnterEmailScreen> {
     super.dispose();
   }
 
-  void _handleSubmit() {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      
-      // Simulate sending OTP
-      Future.delayed(const Duration(seconds: 2), () {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => EnterOtpScreen(
-                email: _emailController.text,
-              ),
-            ),
-          );
-        }
-      });
+  Future<void> _handleSubmit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    final result = await AuthService.forgotPassword(
+      _emailController.text.trim(),
+    );
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (result['success'] == true) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EnterOtpScreen(
+            email: _emailController.text.trim(),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message'] as String),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
     }
   }
 
@@ -51,7 +65,7 @@ class _EnterEmailScreenState extends State<EnterEmailScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(Icons.arrow_back_ios_rounded, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -138,7 +152,7 @@ class _EnterEmailScreenState extends State<EnterEmailScreen> {
                       child: const Text(
                         'Back to Login',
                         style: TextStyle(
-                          color: AppColors.primaryLight,
+                          color: AppColors.primaryDark,
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),

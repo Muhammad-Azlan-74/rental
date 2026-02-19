@@ -24,7 +24,7 @@ class CustomButton extends StatelessWidget {
         gradient: isOutlined ? null : AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(12),
         border: isOutlined
-            ? Border.all(color: AppColors.primaryLight, width: 2)
+            ? Border.all(color: AppColors.primaryDark, width: 2)
             : null,
       ),
       child: Material(
@@ -45,7 +45,7 @@ class CustomButton extends StatelessWidget {
                 : Text(
                     text,
                     style: TextStyle(
-                      color: isOutlined ? AppColors.primaryLight : Colors.white,
+                      color: isOutlined ? AppColors.primaryDark : Colors.white,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       letterSpacing: 0.5,
